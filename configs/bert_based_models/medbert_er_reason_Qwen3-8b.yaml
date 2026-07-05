@@ -1,0 +1,67 @@
+# MedBERT fine-tuned on er-reason — Qwen3-8B teacher ablation
+# Role: validator  — concatenates all splits, stratified 80/20 train/eval
+# Role: student    — loads from CoT split files (cot_train/val/test)
+#
+# Scope note: this ablation is Experiment 1 only (explicit CoT text transfer,
+# ER-REASON, no augmentation). See er_reason_cot_Qwen3-8b.yaml and
+# cf_er_reason_Qwen3-8b.yaml for the corresponding CoT/CF generation configs.
+
+model:
+  checkpoint: "microsoft/BiomedNLP-BiomedBERT-base-uncased-abstract"
+  num_labels: 2
+  label_map:
+    "0": 0   # Discharge
+    "1": 1   # Admit
+  id2label:
+    "0": "discharge"
+    "1": "admit"
+
+training:
+  epochs: 5
+  batch_size: 16
+  lr: 1e-05
+  warmup_ratio: 0.1
+  max_len: 512
+  eval_split: 0.2          # 80/20 stratified split performed by load_validator_data()
+  seed: 42
+  class_weight:
+    "0": 1.0
+    "1": 1.0
+  use_weighted_loss: true
+  early_stopping_patience: 2
+  primary_metric: "f1_macro"
+
+dataset:
+  # Original processed splits — used by the validator role
+  train: "data/processed/er_reason/original_processed/er_reason_processed_train.jsonl"
+  val:   "data/processed/er_reason/original_processed/er_reason_processed_val.jsonl"
+  test:  "data/processed/er_reason/original_processed/er_reason_processed_test.jsonl"
+
+  # ---- Active paths for this ablation (Qwen3-8B teacher) ----
+  # CoT split files — used by the student role (contain both text and cot_text)
+  cot_train: "data/processed/er_reason/cot/er_reason_cot_train_Qwen3-8b.jsonl"
+  cot_val:   "data/processed/er_reason/cot/er_reason_cot_val_Qwen3-8b.jsonl"
+  cot_test:  "data/processed/er_reason/cot/er_reason_cot_test_Qwen3-8b.jsonl"
+
+# Augmented split files intentionally omitted for this ablation no
+# augmentation runs (consistent with the scope of the earlier BERT-base
+# ablation). Confirmed safe to omit via load_student_data() in
+# finetune_bert.py: missing aug_{mode}_* keys resolve via dataset_cfg.get(),
+# which logs a warning and returns an empty split rather than raising
+# KeyError. Orchestrators for this ablation never pass --augment, so this
+# path should never be exercised in practice. If augmented 8B runs are
+# added later, add aug_cot_train/val/test and aug_original_train/val/test
+# here with Qwen3-8b paths.
+
+output:
+  base_dir: "model_weights/medbert_student_er_reason"
+  # NOTE: shared base_dir across teacher variants is safe — run_finetune_bert.py
+  # requires --run-name (exits if missing, confirmed working) and uses it as the
+  # checkpoint subdirectory. Always pass a distinct --run-name for 8B runs
+  # (e.g. medbert-er-reason-cot-8b) to keep checkpoints separate from the 4B run.
+
+# injection and hidden_states blocks intentionally removed for this config —
+# this ablation is scoped to Experiment 1 (explicit CoT text transfer) only.
+# Those blocks are only read by run_finetune_bert.py when mode == "injection"
+# (Experiment 2), confirmed via code read (injection_cfg is forced to {} for
+# any other mode) — safe to omit entirely here.

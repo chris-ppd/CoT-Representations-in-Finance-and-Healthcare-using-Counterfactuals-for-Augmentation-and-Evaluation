@@ -1,0 +1,40 @@
+dataset:
+  sub_dataset: "er-reason"
+  id2label:
+    0: "discharge"
+    1: "admit"
+  splits:
+    train:
+      cot_input: "data/processed/er_reason/cot/er_reason_cot_train_Qwen3-8b.jsonl"
+      lime_output: "data/processed/er_reason/lime/er_reason_lime_train_Qwen3-8b.jsonl"
+      cf_output: "data/processed/er_reason/counterfactual_cot/er_reason_counterfactual_cot_train.jsonl"
+    val:
+      cot_input: "data/processed/er_reason/cot/er_reason_cot_val_Qwen3-8b.jsonl"
+      lime_output: "data/processed/er_reason/lime/er_reason_lime_val_Qwen3-8b.jsonl"
+      cf_output: "data/processed/er_reason/counterfactual_cot/er_reason_counterfactual_cot_val.jsonl"
+    test:
+      cot_input: "data/processed/er_reason/cot/er_reason_cot_test_Qwen3-8b.jsonl"
+      lime_output: "data/processed/er_reason/lime/er_reason_lime_test_Qwen3-8b.jsonl"
+      cf_output: "data/processed/er_reason/counterfactual_cot/er_reason_counterfactual_cot_test.jsonl"
+
+lime:
+  num_features: 25    # per sentence; 30-70 token sentences need far fewer features than full profiles
+  num_samples: 512
+  batch_size: 64
+
+generation:
+  teacher_model:
+    name: "Qwen/Qwen3-8B"
+    quantization: "4bit"
+    max_new_tokens: 512
+    batch_size: 2    # max profiles per Qwen slot call; H100: 80, A100/smaller: 16
+  top_k: 3            # lock after pilot experiment (run generate_counterfactuals.py --pilot)
+  max_retries: 0
+  num_batches: 2   # null = full dataset; int N limits processing to N*batch_size profiles
+
+reconstruction:
+  system_prompt_path: prompts/reconstruction/er_reason_reconstruction_system_prompt.txt
+  output_dir: data/processed/er_reason/counterfactual/
+  batch_size: 2
+  max_new_tokens: 512
+  num_batches: 5  # null = full dataset; int N limits processing to N*batch_size profiles

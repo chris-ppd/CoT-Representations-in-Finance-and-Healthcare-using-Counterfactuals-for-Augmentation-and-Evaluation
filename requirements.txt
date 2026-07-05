@@ -1,0 +1,27 @@
+# Core ML
+scikit-learn
+torch
+torchvision
+torchaudio
+
+# HuggingFace ecosystem
+transformers
+accelerate
+bitsandbytes
+huggingface_hub
+sentence-transformers
+
+# Feature Extraction
+lime == 0.2.0.1
+
+# Data handling
+pandas
+numpy
+
+# Utilities
+nltk
+tqdm
+pyyaml
+python-dotenv
+wandb
+wandb-workspaces

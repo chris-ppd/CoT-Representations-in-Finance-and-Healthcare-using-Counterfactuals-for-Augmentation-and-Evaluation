@@ -1,0 +1,44 @@
+# Teacher LLM settings
+teacher_model:
+  name: "Qwen/Qwen3-4B"
+  # saved_path is unused — [ES]/[STEP]/[EORS] are NOT added to the tokenizer vocabulary.
+  # Adding them caused Qwen3 to replace them with <tool_call>/<tool_response> tags.
+  # Hidden state extraction uses multi-token sequence matching on "[ES]" instead.
+  max_new_tokens: 640
+  batch_size: 1 # batch size during inference of the teacher model for cot generation
+  quantization: "8bit"
+  num_batches: 3   # null = process entire dataset; set an int to limit the main pass (so I won't have to wait when I'm experimenting with the cot generator)
+  max_retries: 3      # retry rounds for failed validation points after the main pass
+
+# Dataset settings - each sub-dataset has its own processed profiles and prompt
+dataset:
+  name: "finbench"
+  task: "loan_default"
+  active_sub_dataset: "ld1"  # switch this to change which sub-dataset you are working on
+  
+  sub_datasets:
+    ld1:
+      processed_profiles_path: "data/processed/finbench/ld1/original_processed/ld1_processed.jsonl"
+      prompt_path: "prompts/finbench_ld1_prompt.txt"
+      cot_output_path: "data/processed/finbench/ld1/cot/ld1_cot.jsonl"
+      id2label:
+        0: "repaid"
+        1: "defaulted"
+    cc3:
+      processed_profiles_path: "data/processed/finbench/cc3/original_processed/cc3_processed.jsonl"
+      prompt_path: "prompts/finbench_cc3_prompt.txt"
+      cot_output_path: "data/processed/finbench/cc3/cot/cc3_cot.jsonl"
+      id2label:
+        0: "retained"
+        1: "churned"
+
+# Hidden state extraction settings
+# Set enabled: true (or pass --extract-hidden-states) to run the hook pipeline.
+# No tokenizer setup needed — [ES] is matched as a multi-token sequence.
+hidden_states:
+  enabled: false
+  # Directory where temp/ and final/ subdirs will be created.
+  # This is the user-controlled output location for all .pt files and metadata.
+  output_dir: "data/hidden_states/finbench/ld1/cot"
+  # Hidden dimension of the teacher model (Qwen3-4B = 2560).
+  hidden_dim: 2560

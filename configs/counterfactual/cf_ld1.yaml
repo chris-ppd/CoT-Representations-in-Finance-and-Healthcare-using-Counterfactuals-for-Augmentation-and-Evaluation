@@ -1,0 +1,40 @@
+dataset:
+  sub_dataset: "ld1"
+  id2label:
+    0: "repaid"
+    1: "defaulted"
+  splits:
+    train:
+      cot_input: "data/processed/finbench/ld1/cot/ld1_cot_train_Qwen3-4b.jsonl"
+      lime_output: "data/processed/finbench/ld1/lime/ld1_lime_train.jsonl"
+      cf_output: "data/processed/finbench/ld1/counterfactual_cot/ld1_counterfactual_cot_train.jsonl"
+    val:
+      cot_input: "data/processed/finbench/ld1/cot/ld1_cot_val_Qwen3-4b.jsonl"
+      lime_output: "data/processed/finbench/ld1/lime/ld1_lime_val.jsonl"
+      cf_output: "data/processed/finbench/ld1/counterfactual_cot/ld1_counterfactual_cot_val.jsonl"
+    test:
+      cot_input: "data/processed/finbench/ld1/cot/ld1_cot_test_Qwen3-4b.jsonl"
+      lime_output: "data/processed/finbench/ld1/lime/ld1_lime_test.jsonl"
+      cf_output: "data/processed/finbench/ld1/counterfactual_cot/ld1_counterfactual_cot_test.jsonl"
+
+lime:
+  num_features: 25    # per sentence; 30-70 token sentences need far fewer features than full profiles
+  num_samples: 512    # perturbed versions for local linear model fit
+  batch_size: 64      # internal batch size for the BERT validator's predict_proba
+
+generation:
+  teacher_model:
+    name: "Qwen/Qwen3-4B"
+    quantization: "8bit"
+    max_new_tokens: 512
+    batch_size: 2    # max profiles per Qwen slot call; H100: 80, A100/smaller: 16
+  top_k: 3            # lock after pilot experiment (run generate_counterfactuals.py --pilot)
+  max_retries: 0
+  num_batches: 2   # null = full dataset; int N limits processing to N*batch_size profiles
+
+reconstruction:
+  system_prompt_path: prompts/reconstruction/ld1_reconstruction_system_prompt.txt
+  output_dir: data/processed/finbench/ld1/counterfactual/
+  batch_size: 2
+  max_new_tokens: 512
+  num_batches: 5  # null = full dataset; int N limits processing to N*batch_size profiles

@@ -1,0 +1,85 @@
+# FinBERT fine-tuned on FinBench LD1
+# Role: validator  — concatenates all splits, stratified 80/20 train/eval
+# Role: student    — loads from CoT split files (cot_train/val/test)
+#
+# Usage (validator):
+#   python scripts/train_bert.py --config configs/bert/finbert_ld1.yaml \
+#       --role validator --run-name finbert_val_ld1_run1
+#
+# Usage (student, original text):
+#   python scripts/train_bert.py --config configs/bert/finbert_ld1.yaml \
+#       --role student --mode original --run-name finbert_student_orig_ld1_run1
+#
+# Usage (student, CoT text):
+#   python scripts/train_bert.py --config configs/bert/finbert_ld1.yaml \
+#       --role student --mode cot --run-name finbert_student_cot_ld1_run1
+
+model:
+  checkpoint: "ProsusAI/finbert"
+  num_labels: 2
+  # Training label map: our int class → model label id (identity for binary)
+  label_map:
+    "0": 0
+    "1": 1
+  # id2label controls the output label strings used by the inference pipeline.
+  # Must match the label_map in cot_validator.py's ValidatorConfig for the
+  # validator role.  0 = repaid (positive sentiment), 1 = defaulted (negative).
+  id2label:
+    "0": "repaid"
+    "1": "defaulted"
+  
+
+training:
+  epochs: 5
+  batch_size: 16
+  lr: 5e-06
+  warmup_ratio: 0.1
+  max_len: 512
+  eval_split: 0.2          # fraction held out for in-training eval (validator only)
+  seed: 1                # seeds to explore: [1, 10, 42]
+  # class_weight options:
+  #   null / "balanced"         → sklearn inverse-frequency weights
+  #   {"0": 0.5, "1": 2.0}     → explicit weights  (other values to try:
+  #                                {"0": 0.5, "1": 1.5}, {"0": 0.5, "1": 2.5})
+  class_weight:
+    "0": 0.5
+    "1": 2.0
+  use_weighted_loss: true  # set false to use standard CrossEntropyLoss
+  early_stopping_patience: 2
+  primary_metric: "f1_macro"
+
+dataset:
+  # Original processed splits — used by the validator role
+  train: "data/processed/finbench/ld1/original_processed/ld1_processed_train.jsonl" 
+  val:   "data/processed/finbench/ld1/original_processed/ld1_processed_val.jsonl"
+  test:  "data/processed/finbench/ld1/original_processed/ld1_processed_test.jsonl"
+  # CoT split files — used by the student role (contain both text and cot_text)
+  cot_train: "data/processed/finbench/ld1/cot/ld1_cot_train_Qwen3-4b.jsonl"
+  cot_val:   "data/processed/finbench/ld1/cot/ld1_cot_val_Qwen3-4b.jsonl"
+  cot_test:  "data/processed/finbench/ld1/cot/ld1_cot_test_Qwen3-4b.jsonl"
+  # Augmented split files — used by the student role with --augment
+  aug_cot_train:      "data/processed/finbench/ld1/augmented/cot/ld1_augmented_cot_train_Qwen3-4b.jsonl"
+  aug_cot_val:        "data/processed/finbench/ld1/augmented/cot/ld1_augmented_cot_val_Qwen3-4b.jsonl"
+  aug_cot_test:       "data/processed/finbench/ld1/augmented/cot/ld1_augmented_cot_test_Qwen3-4b.jsonl"
+  aug_original_train: "data/processed/finbench/ld1/augmented/original/ld1_augmented_original_train_Qwen3-4b.jsonl"
+  aug_original_val:   "data/processed/finbench/ld1/augmented/original/ld1_augmented_original_val_Qwen3-4b.jsonl"
+  aug_original_test:  "data/processed/finbench/ld1/augmented/original/ld1_augmented_original_test_Qwen3-4b.jsonl"
+
+output:
+  base_dir: "model_weights/finbert_student_ld1"
+
+injection:
+  hidden_dim_teacher: 2560
+  n_steps: 3
+  layer_groups: [[1,2,3,4],[5,6,7,8],[9,10,11,12]]
+  gate_init: 0.1
+  teacher_model_suff: "Qwen3-4b"
+  hidden_states:
+    cot:
+      train: "data/hidden_states/finbench/ld1/cot/train"
+      val:   "data/hidden_states/finbench/ld1/cot/val"
+      test:  "data/hidden_states/finbench/ld1/cot/test"
+    cf:
+      train: "data/hidden_states/finbench/ld1/cf/train"
+      val:   "data/hidden_states/finbench/ld1/cf/val"
+      test:  "data/hidden_states/finbench/ld1/cf/test"

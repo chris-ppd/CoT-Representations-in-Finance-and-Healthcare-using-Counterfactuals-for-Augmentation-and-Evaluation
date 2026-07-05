@@ -1,0 +1,65 @@
+# MedBERT fine-tuned on er-reason
+# Role: validator  — concatenates all splits, stratified 80/20 train/eval
+# Role: student    — loads from CoT split files (cot_train/val/test)
+
+model:
+  checkpoint: "microsoft/BiomedNLP-BiomedBERT-base-uncased-abstract"
+  num_labels: 2
+  label_map:
+    "0": 0   # Discharge
+    "1": 1   # Admit
+  id2label:
+    "0": "discharge"
+    "1": "admit"
+
+training:
+  epochs: 5
+  batch_size: 16
+  lr: 1e-05
+  warmup_ratio: 0.1
+  max_len: 512
+  eval_split: 0.2          # 80/20 stratified split performed by load_validator_data()
+  seed: 42
+  class_weight:
+    "0": 1.0
+    "1": 1.0
+  use_weighted_loss: true
+  early_stopping_patience: 2
+  primary_metric: "f1_macro"
+
+dataset:
+  # Original processed splits — used by the validator role
+  train: "data/processed/er_reason/original_processed/er_reason_processed_train.jsonl" 
+  val:   "data/processed/er_reason/original_processed/er_reason_processed_val.jsonl"
+  test:  "data/processed/er_reason/original_processed/er_reason_processed_test.jsonl"
+  # CoT split files — used by the student role (contain both text and cot_text)
+  cot_train: "data/processed/er_reason/cot/er_reason_cot_train_Qwen3-4b.jsonl"
+  cot_val:   "data/processed/er_reason/cot/er_reason_cot_val_Qwen3-4b.jsonl"
+  cot_test:  "data/processed/er_reason/cot/er_reason_cot_test_Qwen3-4b.jsonl"
+  # Augmented split files — used by the student role with --augment
+  aug_cot_train:      "data/processed/er_reason/augmented/cot/er_reason_augmented_cot_train_Qwen3-4b.jsonl"
+  aug_cot_val:        "data/processed/er_reason/augmented/cot/er_reason_augmented_cot_val_Qwen3-4b.jsonl"
+  aug_cot_test:       "data/processed/er_reason/augmented/cot/er_reason_augmented_cot_test_Qwen3-4b.jsonl"
+  aug_original_train: "data/processed/er_reason/augmented/original/er_reason_augmented_original_train_Qwen3-4b.jsonl"
+  aug_original_val:   "data/processed/er_reason/augmented/original/er_reason_augmented_original_val_Qwen3-4b.jsonl"
+  aug_original_test:  "data/processed/er_reason/augmented/original/er_reason_augmented_original_test_Qwen3-4b.jsonl"
+
+
+output:
+  base_dir: "model_weights/medbert_student_er_reason"
+
+injection:
+  hidden_dim_teacher: 2560
+  n_steps: 3
+  layer_groups: [[1,2,3,4],[5,6,7,8],[9,10,11,12]]
+  gate_init: 0.1
+  teacher_model_suff: "Qwen3-4b"
+  hidden_states:
+    cot: 
+      train: "data/hidden_states/er_reason/cot/train"
+      val:   "data/hidden_states/er_reason/cot/val"
+      test:  "data/hidden_states/er_reason/cot/test"
+    cf:
+      train: "data/hidden_states/er_reason/cf/train"
+      val:   "data/hidden_states/er_reason/cf/val"
+      test:  "data/hidden_states/er_reason/cf/test"

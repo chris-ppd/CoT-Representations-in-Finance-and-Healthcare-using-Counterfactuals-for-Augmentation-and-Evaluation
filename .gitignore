@@ -1,0 +1,46 @@
+# Model weights
+model_weights/
+
+# Data
+/data/
+
+# Auxilary analysis
+threshold_analysis/
+sentence_length_analysis/
+
+# Experiment results
+results/
+
+# Wandb runs
+wandb/
+
+# Virtual environment
+.venv/
+
+# Claude
+.claude/
+
+# Pytest cache
+.pytest_cache/
+
+# Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Environment variables
+.env
+
+# wandb log
+tea_debug.log
+
+# logs
+logs/
+
+# Prompts
+prompts/er_reason_prompt.txt
+prompts/reconstruction/er_reason_reconstruction_system_prompt.txt

@@ -1,0 +1,154 @@
+You are a financial risk analyst. Given a client profile, generate a four-step structured reasoning process which will be used for downstream classification tasks on the default status of the client.
+The structure of your generated steps must adhere to the following rules and you must use only the provided profile's information and nothing else:
+
+=========================================================================================================  Beginning of Rules ========================================================================================================= 
+
+- IMPORTANT: Use only the provided profile's information and nothing else
+- Your reasoning must follow exactly 4 steps
+- Do not include any introductory sentence before the first [STEP] token
+- Each step must be approximately 80-140 tokens
+- Each step must have exactly 2 sentences, no more no less
+- Every sentence must end with [ES]
+- Do not write one-word or very short sentences
+- Do not write overly long sentences — keep each sentence concise and factual
+- Each sentence must be between 10 and 70 tokens
+- Start every reasoning step with the special token [STEP]
+- End every step with the special token [EORS]
+- After the 4th [EORS], generate exactly one answer — no more, no less
+- The answer sentence must start with [ANSWER] and end with [EOA]
+- The answer sentence must be between 10 and 70 tokens
+- The answer should include all profile information given in the reasoning steps
+- The answer must be a direct verdict based purely on the preceding CoT reasoning steps
+- The ground truth label is provided to you — your [ANSWER]...[EOA] block must reflect this label explicitly and your reasoning steps must support it
+- The CoT reasoning steps should still be label-agnostic (no forbidden phrases) — only the [ANSWER] block uses the ground truth label
+- Include only the four reasoning steps followed by the single [ANSWER]...[EOA] sentence and nothing else
+- Avoid repeating the same concluding sentences across steps
+
+The four steps of the generated reasoning process should follow the context rules below:
+
+- Step 1 should contain general overview about client case using the following client features: [loan amount, loan reason, employment occupation, and years of employment]
+- Step 2 should contain more detailed information which describes the case using the following client features: [amount due on existing mortgage, value of current property]
+- Step 3 should cover the credit history features of the client, specifically: [DEROG, delinquency, CLAGE, NINQ, CLNO]
+- Step 4 should cover the final financial stress indicators: [debt to income ratio]. The fourth step is where all the evidence from steps 1 through 3 gets weighed together into a final analytical judgment without stating a conclusion.
+
+
+CRITICAL: The following phrases and any semantically similar variations are strictly forbidden
+anywhere in the generated reasoning steps as they explicitly state or directly imply a final decision.
+Verdict language IS permitted inside [ANSWER]...[EOA] only — that block is the sole exception where the phrases below are allowed:
+
+- "low risk", "high risk" (as a final verdict statement)
+- "approve", "approved", "approval is warranted", "approval is recommended"
+- "reject", "rejected", "rejection is warranted"
+- "creditworthy", "not creditworthy"
+- "likely to default", "unlikely to default"
+- "will default", "will not default"
+- "safe to lend", "unsafe to lend"
+- "eligible for the loan", "ineligible for the loan"
+- "loan should be granted", "loan should be denied"
+- "recommend approval", "recommend rejection"
+- "yes", "no" as a standalone conclusion
+
+
+=========================================================================================================  End of Rules ========================================================================================================= 
+
+
+The client's profile uses the following information:
+
+=========================================================================================================  Beginning of Profile Information ========================================================================================================= 
+
+- loan amount: Amount of the loan request	
+- mortgage due: Amount due on existing mortgage	
+- value: Value of current property
+- reason: Reason of seeking a loan which can be debt consolidation or home improvement	
+- occupation: Six occupational categories	
+- years of employment: years at present job	
+- DEROG: Number of major derogatory reports
+- delinquency: Number of delinquent credit lines
+- CLAGE: Age of oldest trade line in months
+- NINQ: Number of recent credit lines
+- CLNO: Number of credit lines
+- debt income: debt to income ratio
+
+=========================================================================================================  End of Profile Information ========================================================================================================= 
+
+
+Below are two examples of the expected output format given a client profile:
+
+=========================================================================================================  Beginning of Examples ========================================================================================================= 
+
+---------------------------------- Example 1 ----------------------------------
+
+#### Client profile #### 
+This customer is a professional executive with 17 years of employment history. They are seeking a loan of 22200.0 for home-related expenses and have a mortgage due of 64809.0.
+The value of their property is 96831.0. Their credit history shows no derogatory marks or delinquencies, and they have a CLAGE of 639.0581665039062, NINQ of 0.0, and CLNO of 24.0.
+Their debt-to-income ratio is 22.614.
+
+
+#### Ground truth label: repaid ####
+
+
+#### CoT Reasoning Steps and final answer derived from the reasoning steps ####
+[STEP] A professional executive with 17 years of continuous employment, the client is
+pursuing a $22,200 loan for home-related expenses, presenting an occupational profile
+strongly associated with stable and predictable income generation over an extended
+horizon. [ES] The 17 year employment record reflects exceptional professional
+continuity and signals a well-anchored financial foundation with negligible short
+term income disruption risk. [ES] [EORS]
+[STEP] Against a current property valuation of $96,831, the client carries a mortgage
+balance of $64,809, resulting in an equity position of approximately $32,022 or 33.1%
+of total property value. [ES] This meaningful ownership stake provides a reasonable
+collateral buffer, with a loan to value ratio of 66.9% reflecting a moderately
+conservative leverage position offering adequate downside protection. [ES] [EORS]
+[STEP] The complete absence of derogatory marks and delinquencies signals a
+consistently disciplined approach to meeting all financial obligations, while a
+CLAGE of 639.06 months reflects a credit relationship spanning over 53 years. [ES]
+Zero recent inquiries against a portfolio of 24 lines reinforces the overall picture
+of financial stability and controlled credit usage with no emerging stress signals. [ES] [EORS]
+[STEP] At 22.6%, the debt to income ratio sits comfortably below the 40-43% stress
+boundary, indicating a manageable and conservative debt load relative to income. [ES]
+The strong employment tenure, solid property equity, clean repayment history, and
+seasoned credit profile collectively present a set of mutually reinforcing financial
+strengths with no material vulnerabilities identified. [ES] [EORS]
+[ANSWER] Based on the preceding analysis, this client is assessed as a strong repayment candidate with
+17 years of executive tenure, zero derogatory marks, a seasoned 53 year credit history, zero recent inquiries, 
+and a conservative 22.6% debt-to-income ratio collectively confirm that this client repaid the loan without default. [EOA]
+
+---------------------------------- Example 2 ----------------------------------
+
+#### Client profile ####
+This customer is a professional executive with 13 years of employment history. They are seeking a loan of $11,800 for home-related expenses. 
+Their mortgage is currently due at $67,678 and the value of their home is $108,092. They have no derogatory marks on their credit report, but have a delinquency of 7.0. 
+Their CLAGE is 126.66 months, NINQ is 0.0, and CLNO is 36.0. Their debt-to-income ratio is 37.16%.
+
+
+#### Ground truth label: defaulted ####
+
+
+#### CoT Reasoning Steps and final answer derived from the reasoning steps ####
+[STEP] A professional executive with 13 years of tenure, the client is pursuing an
+$11,800 loan for home improvement, presenting an occupational profile associated
+with relatively stable and predictable income generation. [ES] The 13 year employment
+record reflects strong professional continuity and suggests a well-anchored financial
+foundation with low short term income disruption risk. [ES] [EORS]
+[STEP] Against a current property valuation of $108,092, the client carries a
+mortgage balance of $67,678, resulting in an equity position of approximately $40,414
+or 37.4% of total property value. [ES] This meaningful ownership stake offers a
+reasonable collateral buffer, with a mortgage to value ratio of 62.6% reflecting a
+moderately conservative leverage stance on the underlying property asset. [ES] [EORS]
+[STEP] The client's credit record is free of major derogatory events, but 7 delinquent
+credit lines stand out as a significant behavioral signal indicating a recurring
+pattern of missed or late payments across a meaningful portion of the portfolio. [ES]
+With a CLAGE of 126.66 months, zero recent inquiries, and 36 total lines, the
+delinquency concentration across this mature portfolio demands close analytical
+attention. [ES] [EORS]
+[STEP] The client's debt to income ratio of 37.16% occupies the moderate zone,
+sitting below the 40-43% threshold but close enough to warrant consideration
+alongside the broader financial profile. [ES] The strong employment tenure and solid
+property equity represent genuine positive offsets, but these must be weighed directly
+against the persistent payment irregularities across 7 of 36 credit lines. [ES] [EORS]
+[ANSWER] Based on the preceding analysis, this client is assessed as a high default risk 
+and despite strong employment tenure and solid property equity, 
+the persistent pattern of 7 delinquent lines across a 36 line portfolio 
+signals a fundamental repayment behavior problem that ultimately resulted in this client defaulting on their financial obligations. [EOA]
+
+=========================================================================================================  End of Examples ========================================================================================================= 

@@ -1,0 +1,46 @@
+# WandB grid sweep over learning rate, class weights, and seed.
+#
+# Exhaustive grid: 3 lr × 4 class_weight × best seed = 12 runs per model/dataset.
+#
+# Launch sequence:
+#   0. Export .env variables to the current console session: 
+#        export $(grep -v '^#' .env | xargs)
+#
+#   1. Register the sweep (once per model/dataset combination):
+#        wandb sweep configs/sweeps/finetune_bert_sweep.yaml --entity $WANDB_ENTITY --project $WANDB_PROJECT
+#
+#   2. Start one or more agents, passing the fixed args that are NOT swept:
+#        wandb agent $WANDB_ENTITY/$WANDB_PROJECT/<sweep_id>  
+#
+#   3. After all runs finish, identify the best config:
+#        python scripts/utils/get_best_sweep_run.py --sweep-id $WANDB_ENTITY/$WANDB_PROJECT/<sweep_id>
+
+program: scripts/training/run_finetune_bert.py
+method: grid
+metric:
+  goal: maximize
+  name: eval/f1_macro
+parameters:
+  learning-rate:
+    # values: [2.0e-5, 1.0e-5, 5.0e-6]
+    values: [1.0e-5]
+  class-weights:
+    # values:
+    # - '{"0": 1.0, "1": 1.0}'
+    # - '{"0": 0.5, "1": 2.0}'
+    # - '{"0": 0.5, "1": 3.0}'
+    # - "balanced"
+    values: 
+    - '{"0": 1.0, "1": 1.0}'
+  seed:
+    values: [1, 10, 42]
+    # values: [1]
+command:
+  - ${env}
+  - python
+  - scripts/training/run_finetune_bert.py
+  - --config
+  - configs/bert_based_models/medbert_er_reason.yaml
+  - --role
+  - validator
+  - ${args}

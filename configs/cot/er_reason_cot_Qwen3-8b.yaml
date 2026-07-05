@@ -1,0 +1,30 @@
+# Teacher LLM settings
+teacher_model:
+  name: "Qwen/Qwen3-8B"
+  # saved_path is unused — [ES]/[STEP]/[EORS] are NOT added to the tokenizer vocabulary.
+  # Adding them caused Qwen3 to replace them with <tool_call>/<tool_response> tags.
+  # Hidden state extraction uses multi-token sequence matching on "[ES]" instead.
+  max_new_tokens: 640
+  batch_size: 1 # batch size during inference of the teacher model for cot generation
+  quantization: "4bit"
+  num_batches: 5  # null = process entire dataset; set an int to limit the main pass (so I won't have to wait when I'm experimenting with the cot generator)
+  max_retries: 2      # retry rounds for failed validation points after the main pass
+
+# Dataset settings
+dataset:
+  name: "er-reason"
+  task: "disposition_prediction"
+  active_sub_dataset: "er-reason"  # single sub-dataset for this domain
+
+  sub_datasets:
+    er-reason:
+      processed_profiles_path: "data/processed/er_reason/original_processed/er_reason_processed.jsonl"
+      prompt_path: "prompts/er_reason_prompt.txt"
+      cot_output_path: "data/processed/er_reason/cot/er_reason_cot.jsonl"
+      id2label:
+        0: "discharge"
+        1: "admit"
+
+# Hidden state extraction is not used for this config because this run is scoped to
+# Experiment 1 (explicit CoT text transfer) only. Hidden states are only needed
+# for Experiment 2's injection mechanism, which is out of scope for this ablation.
