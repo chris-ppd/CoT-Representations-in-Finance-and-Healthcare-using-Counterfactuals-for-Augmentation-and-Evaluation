@@ -17,14 +17,14 @@ the reasoning depth.
 The framework uses the LLM **only once**, during training data preparation:
 
 A teacher LLM (Qwen3-4B, 8-bit quantized) generates structured Chain-of-Thought
-reasoning profiles for each data point, guided by a constrained system prompt
+reasoning profiles for each data point, guided by a constrained system prompt.
 Generated reasoning passes automatic structural and faithfulness validation
-before use
+before use.
 BERT-based student classifiers (~110M parameters) are trained via two
 reasoning-transfer methods:
 **Explicit:** training directly on the teacher's generated reasoning text
 **Implicit:** injecting the teacher's hidden states into the student's layers
-during training, via gated residual signals
+during training, via gated residual signals.
 Counterfactuals for evaluation and data augmentation are generated with a hard
 label-flip gate: a counterfactual is only accepted once the classifier's prediction
 has demonstrably flipped, ensuring every accepted counterfactual carries genuine
@@ -38,9 +38,9 @@ explanatory value.
 | Clinical disposition (ER-REASON) | 0.705 | **0.908** |
 
 +20 F1 points on both benchmarks over classifiers trained on plain profiles
-Student model is **36× smaller** than the teacher LLM (110M vs 4B parameters)
+Student model is **36× smaller** than the teacher LLM (110M vs 4B parameters).
 Student training runs on consumer hardware (RTX 2070); the teacher is only
-needed once, on an H100
+needed once, on an H100. 
 CoT-trained students also generalize better to counterfactual scenarios
 ## Repository Structure
 
