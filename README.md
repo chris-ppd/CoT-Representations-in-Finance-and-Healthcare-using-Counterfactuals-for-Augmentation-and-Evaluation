@@ -42,26 +42,6 @@ Student model is **36× smaller** than the teacher LLM (110M vs 4B parameters).
 Student training runs on consumer hardware (RTX 2070); the teacher is only
 needed once, on an H100. 
 CoT-trained students also generalize better to counterfactual scenarios
-## Repository Structure
-
-(backtick)(backtick)(backtick)
-├── configs/ # experiment configs (models, CoT, counterfactuals, sweeps)
-├── prompts/ # system prompts for CoT and counterfactual generation
-├── scripts/
-│ ├── data/ # dataset preparation and processing
-│ ├── generation/ # CoT and counterfactual generation pipelines
-│ ├── training/ # student model training (explicit + implicit transfer)
-│ ├── experiments/ # experiment runners and evaluation sweeps
-│ └── utils/ # shared script utilities
-├── src/
-│ ├── cot/ # CoT generation and validation logic
-│ ├── counterfactual/ # label-flip gated counterfactual pipeline
-│ ├── data/ # data loading and handling
-│ ├── data_preprocessing/ # preprocessing for training inputs
-│ └── models/ # teacher and student model implementations
-├── test/ # tests
-└── utils/ # shared utilities
-(backtick)(backtick)(backtick)
 
 ## Running the Code
 
